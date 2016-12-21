@@ -1,4 +1,4 @@
-function[]=listcheck_update(statusdir,dirdaily,dirupdate,strategy)
+function[]=listcheck_update_v1.0(statusdir,dirdaily,dirupdate,strategy)
 %
 % dirdaily 为存储每日更新单子
 % dirupdate 为存储实际交易单子
@@ -47,16 +47,6 @@ if currentstate ~= 0  %在有持仓的情况下，更新文件夹中应保存交易当日的单子
     len=length(updttrdlist);
     listdate=updttrdlist(len-11:len-4);
     listname=updttrdlist(1:len-12);
-    %检查当前更新文件夹中的文件时间，如果与首次复制时不同则文件名应为strategy + _modified
-    load('lastupdt');
-    posix_dirdaily=DOS2POSIX(dirdaily);  % 转换路径类型，避免警告
-    [lsstatus,lsinfo]=system(['ls -l ' posix_dirdaily]);
-    temp=strsplit(lsinfo,' ');
-    currentdt=[temp{end-2} ' ' temp{end-1}];
-    if ~strcmp(currentdt,lastupdt)
-        strategy=[strategy '_modified'];
-    end
-    
     if ~strcmp(strategy,listname) % 检测是否存在单子放错对应策略
         msg=['更新文件夹中，单子策略错误，应为 ' ,strategy,' ，当前为 ',listname,' ！！！'];      
         logupdt_erroutpt(logid,msg);  
@@ -116,15 +106,4 @@ else  % 在无持仓的情况下，更新文件夹中应为当日最新的单子
         fclose(logid);
         display(msg);
     end    
-    % 记录复制后，更新文件夹内单子时间    
-    posix_dirupdt=DOS2POSIX(dirupdate);  % 转换路径类型，避免警告
-    [lsstatus,lsinfo]=system(['ls -l ' posix_dirupdt]);
-    temp=strsplit(lsinfo,' ');
-    lastupdt=[temp{end-2} ' ' temp{end-1}];
-    save('lastupdt','lastupdt');
 end
-
-
-
-
-
