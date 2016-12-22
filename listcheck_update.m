@@ -8,6 +8,7 @@ function[]=listcheck_update(statusdir,dirdaily,dirupdate,strategy)
 %   有持仓情况：检查更新文件夹
 %       更新文件夹中文件是否唯一
 %       更新文件夹是否为空
+%       检查单子日期时间，判断是否为改过的单子 ，若改过则策略名称应包含 modified   
 %       更新文件夹中单子策略是否与当前前策略相同
 %       更新文件夹中单子日期是否为上次交易日期，该日期取自cwstate
 %   无持仓情况：检查日度文件夹
@@ -18,6 +19,7 @@ function[]=listcheck_update(statusdir,dirdaily,dirupdate,strategy)
 %       若均正确则准备进行复制：
 %            复制前首先删除更新文件夹中所有文件，检查删除是否成功；
 %            若删除成功则复制，检查复制是否成功
+%       记录复制的文件夹对应时间
 %
 % 结果输出至日志 log.txt
 
@@ -47,16 +49,20 @@ if currentstate ~= 0  %在有持仓的情况下，更新文件夹中应保存交易当日的单子
     len=length(updttrdlist);
     listdate=updttrdlist(len-11:len-4);
     listname=updttrdlist(1:len-12);
-    %检查当前更新文件夹中的文件时间，如果与首次复制时不同则文件名应为strategy + _modified
+    % 检查当前更新文件夹中的文件时间，如果与首次复制时不同则文件名应为 modified_ + strategy
+    % 此时已通过上述检验，确定文件夹中文件存在且唯一
     load('lastupdt');
-    posix_dirdaily=DOS2POSIX(dirdaily);  % 转换路径类型，避免警告
-    [lsstatus,lsinfo]=system(['ls -l ' posix_dirdaily]);
+    posix_dirupdt=DOS2POSIX(dirupdate);  % 转换路径类型，避免警告
+    [lsstatus,lsinfo]=system(['ls -l ' posix_dirupdt]);
+    if lsstatus~=0   % 检查提取列表信息是否正确
+        msg='更新文件夹提取列表信息错误';
+        logupdt_erroutpt(logid,msg);  
+    end
     temp=strsplit(lsinfo,' ');
     currentdt=[temp{end-2} ' ' temp{end-1}];
     if ~strcmp(currentdt,lastupdt)
-        strategy=[strategy '_modified'];
-    end
-    
+        strategy=[ 'modified_' strategy];
+    end    
     if ~strcmp(strategy,listname) % 检测是否存在单子放错对应策略
         msg=['更新文件夹中，单子策略错误，应为 ' ,strategy,' ，当前为 ',listname,' ！！！'];      
         logupdt_erroutpt(logid,msg);  
@@ -119,6 +125,10 @@ else  % 在无持仓的情况下，更新文件夹中应为当日最新的单子
     % 记录复制后，更新文件夹内单子时间    
     posix_dirupdt=DOS2POSIX(dirupdate);  % 转换路径类型，避免警告
     [lsstatus,lsinfo]=system(['ls -l ' posix_dirupdt]);
+    if lsstatus~=0   % 检查提取列表信息是否正确
+        msg='日度文件夹提取列表信息错误';
+        logupdt_erroutpt(logid,msg);
+    end
     temp=strsplit(lsinfo,' ');
     lastupdt=[temp{end-2} ' ' temp{end-1}];
     save('lastupdt','lastupdt');
