@@ -52,14 +52,14 @@ if currentstate ~= 0  %在有持仓的情况下，更新文件夹中应保存交易当日的单子
     % 检查当前更新文件夹中的文件时间，如果与首次复制时不同则文件名应为 modified_ + strategy
     % 此时已通过上述检验，确定文件夹中文件存在且唯一
     load('lastupdt');
-    posix_dirupdt=DOS2POSIX(dirupdate);  % 转换路径类型，避免警告
-    [lsstatus,lsinfo]=system(['ls -l ' posix_dirupdt]);
+    [lsstatus,lsinfo]=system(['dir ' dirupdate]);
     if lsstatus~=0   % 检查提取列表信息是否正确
         msg='更新文件夹提取列表信息错误';
         logupdt_erroutpt(logid,msg);  
     end
-    temp=strsplit(lsinfo,' ');
-    currentdt=[temp{end-2} ' ' temp{end-1}];
+    temp =strsplit(lsinfo,'\n');
+    temp2=strsplit(temp{6},' ');
+    currentdt=[temp2{1} ' ' temp2{2}];
     if ~strcmp(currentdt,lastupdt)
         strategy=[ 'modified_' strategy];
     end    
@@ -119,18 +119,18 @@ else  % 在无持仓的情况下，更新文件夹中应为当日最新的单子
         fprintf(logid,'%s\n\r',msg);
         fprintf(logid,'\n\r');
         fprintf(logid,'\n\r');
-        fclose(logid);
         display(msg);
     end    
     % 记录复制后，更新文件夹内单子时间    
-    posix_dirupdt=DOS2POSIX(dirupdate);  % 转换路径类型，避免警告
-    [lsstatus,lsinfo]=system(['ls -l ' posix_dirupdt]);
+    [lsstatus,lsinfo]=system(['dir ' dirupdate]);
     if lsstatus~=0   % 检查提取列表信息是否正确
         msg='日度文件夹提取列表信息错误';
         logupdt_erroutpt(logid,msg);
     end
-    temp=strsplit(lsinfo,' ');
-    lastupdt=[temp{end-2} ' ' temp{end-1}];
+    temp =strsplit(lsinfo,'\n');
+    temp2=strsplit(temp{6},' ');
+    fclose(logid);
+    lastupdt=[temp2{1} ' ' temp2{2}];
     save('lastupdt','lastupdt');
 end
 
