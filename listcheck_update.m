@@ -8,7 +8,7 @@ function[]=listcheck_update(statusdir,dirdaily,dirupdate,strategy)
 %   有持仓情况：检查更新文件夹
 %       更新文件夹中文件是否唯一
 %       更新文件夹是否为空
-%       检查单子日期时间，判断是否为改过的单子 ，若改过则策略名称应包含 modified   
+%       检查单子日期时间，判断是否为改过的单子 ，若改过则策略名称应包含 m_   
 %       更新文件夹中单子策略是否与当前前策略相同
 %       更新文件夹中单子日期是否为上次交易日期，该日期取自cwstate
 %   无持仓情况：检查日度文件夹
@@ -49,7 +49,7 @@ if currentstate ~= 0  %在有持仓的情况下，更新文件夹中应保存交易当日的单子
     len=length(updttrdlist);
     listdate=updttrdlist(len-11:len-4);
     listname=updttrdlist(1:len-12);
-    % 检查当前更新文件夹中的文件时间，如果与首次复制时不同则文件名应为 modified_ + strategy
+    % 检查当前更新文件夹中的文件时间，如果与首次复制时不同则文件名应为 m_ + strategy
     % 此时已通过上述检验，确定文件夹中文件存在且唯一
     load('lastupdt');
     [lsstatus,lsinfo]=system(['dir ' dirupdate]);
@@ -61,7 +61,7 @@ if currentstate ~= 0  %在有持仓的情况下，更新文件夹中应保存交易当日的单子
     temp2=strsplit(temp{6},' ');
     currentdt=[temp2{1} ' ' temp2{2}];
     if ~strcmp(currentdt,lastupdt)
-        strategy=[ 'modified_' strategy];
+        strategy=[ 'm_' strategy];
     end    
     if ~strcmp(strategy,listname) % 检测是否存在单子放错对应策略
         msg=['更新文件夹中，单子策略错误，应为 ' ,strategy,' ，当前为 ',listname,' ！！！'];      
