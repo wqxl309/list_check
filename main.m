@@ -8,6 +8,6 @@ clc;
 statusdir='cwstate.txt';
 dirdaily='D:\Works\挂单检查\日度文件夹';
 dirupdate='D:\Works\挂单检查\更新文件夹';
-strategy='tradeICLongOnlyBQ';
+strategy='BQ1ICLong';
 listcheck_update(statusdir,dirdaily,dirupdate,strategy);
 %exit;  

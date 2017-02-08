@@ -5,6 +5,9 @@ function[]=listcheck_update(statusdir,dirdaily,dirupdate,strategy)
 % strategy 为策略名称，应与单子日期间的部分相同，如tradeIC,tradeICLongOnly
 %
 % 检查顺序：
+%   先复制当日收到的交易单子到 日度文件夹，无论是否有持仓
+%       复制前先删除所有文件，检查是否删除成功
+%       若删除成功则复制，检查复制是否成功，且复制的单子的日期为交易日 当日
 %   有持仓情况：检查更新文件夹
 %       更新文件夹中文件是否唯一
 %       更新文件夹是否为空
@@ -30,6 +33,34 @@ fprintf(logid,'\n\r');
 
 cwstate=importdata(statusdir);
 %出场后全为0，包括日期
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%  复制单子至日度文件夹 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 复制开始前，先清空日度文件夹,删除所有csv文件
+[rmstatus,rmmsg]=system(['del ',dirdaily,'\*.csv']);
+if rmstatus~=0
+    msg=['日度文件夹清空失败，错误原因： ' rmmsg];
+    logupdt_erroutpt(logid,msg);
+else
+    msg='日度文件夹清除成功,即将复制';
+    fprintf(logid,'%s\n\r',msg);
+    fprintf(logid,'\n\r');
+    display(msg);
+end
+% 正常，开始复制文件
+todaydt=datestr(today(),'yyyymmdd');
+[cpstatus,cpmsg]=system(['copy \\HUANGF\tradelist\',strategy ,todaydt, '.csv ',dirdaily]);
+if cpstatus ~=0
+    msg=['复制失败，错误原因：' cpmsg];
+    logupdt_erroutpt(logid,msg);
+else
+    msg=['复制成功，当前日度文件夹中单子日期为 ', todaydt];
+    fprintf(logid,'%s\n\r',msg);
+    fprintf(logid,'\n\r');
+    fprintf(logid,'\n\r');
+    display(msg);
+end
+
 
 currentstate=cwstate(1);
 lasttrddate=cwstate(end); 
@@ -99,20 +130,20 @@ else  % 在无持仓的情况下，更新文件夹中应为当日最新的单子
         logupdt_erroutpt(logid,msg);
     end
     % 复制开始前，先清空更新文件夹,删除所有csv文件
-    [rmstatus,~]=system(['del ',dirupdate,'\*.csv']);
+    [rmstatus,rmmsg]=system(['del ',dirupdate,'\*.csv']);
     if rmstatus~=0
-        msg='删除失败，请检查！！！';
+        msg=['更新文件夹清空失败，错误原因： ' rmmsg];
         logupdt_erroutpt(logid,msg);
     else
-        msg='更新文件夹清除成功';
+        msg='更新文件夹清除成功，即将复制';
         fprintf(logid,'%s\n\r',msg);
         fprintf(logid,'\n\r');
         display(msg);
     end   
     % 正常，开始复制文件
-    [cpstatus,~]=system(['xcopy ',dirdaily,' ',dirupdate ' /Y/S']);
+    [cpstatus,cpmsg]=system(['xcopy ',dirdaily,' ',dirupdate ' /Y/S']);
     if cpstatus ~=0
-        msg='复制失败，请检查！！！';
+        msg=['复制失败，错误原因: ' cpmsg];
         logupdt_erroutpt(logid,msg);
     else
         msg=['复制成功，当前更新文件夹中单子日期为 ', listdate];
