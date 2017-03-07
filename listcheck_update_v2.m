@@ -1,4 +1,4 @@
-function[]=listcheck_update(statusdir,dirdaily,dirupdate,strategy)
+function[]=listcheck_update_v2(statusdir,dirdaily,dirupdate,strategy)
 %
 % dirdaily 为存储每日更新单子
 % dirupdate 为存储实际交易单子
@@ -62,8 +62,7 @@ else
 end
 
 
-currentstate=cwstate(1);
-lasttrddate=cwstate(end); 
+currentstate=cwstate(end,1);
 
 if currentstate ~= 0  %在有持仓的情况下，更新文件夹中应保存交易当日的单子
     updtfiles=ls(dirupdate);
@@ -98,8 +97,9 @@ if currentstate ~= 0  %在有持仓的情况下，更新文件夹中应保存交易当日的单子
         msg=['更新文件夹中，单子策略错误，应为 ' ,strategy,' ，当前为 ',listname,' ！！！'];      
         logupdt_erroutpt(logid,msg);  
     end
-    if str2double(listdate)~=lasttrddate  % 检测是否存在单子日期错误
-        msg=['更新文件夹中，单子日期错误，应为 ', num2str(lasttrddate),' 当前为 ',listdate,' ！！！'];
+    currentdate=datestr(today(),'yyyymmdd');
+    if str2double(listdate)~=str2double(currentdate)  % 检测是否存在单子日期错误
+        msg=['更新文件夹中，单子日期错误，应为 ', currentdate,' 当前为 ',listdate,' ！！！'];
         logupdt_erroutpt(logid,msg);
     end    
     msg=['当前更新文件夹中有上次交易的单子， ',updttrdlist,' ,无需复制！'];
@@ -164,4 +164,3 @@ else  % 在无持仓的情况下，更新文件夹中应为当日最新的单子
     lastupdt=[temp2{1} ' ' temp2{2}];
     save('lastupdt','lastupdt');
 end
-
