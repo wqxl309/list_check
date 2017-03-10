@@ -1,4 +1,4 @@
-function[]=listcheck_update(statusdir,dirdaily,dirupdate,strategy)
+function[]=listcheck_update(statusdir,logdir,dirdaily,dirupdate,strategy)
 %
 % dirdaily 为存储每日更新单子
 % dirupdate 为存储实际交易单子
@@ -26,7 +26,7 @@ function[]=listcheck_update(statusdir,dirdaily,dirupdate,strategy)
 %
 % 结果输出至日志 log.txt
 
-logid=fopen('D:\挂单检查\log.txt','a');
+logid=fopen(logdir,'a');
 msg=['Update Date : ',datestr(now()),' Strategy Name : ',strategy];
 fprintf(logid,'%s\n\r',msg);
 fprintf(logid,'\n\r');
@@ -61,11 +61,14 @@ else
     display(msg);
 end
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%% 检查当前状态 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+currentstate=cwstate(end,1);
+lasttrddate=cwstate(end,end); 
 
-currentstate=cwstate(1);
-lasttrddate=cwstate(end); 
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%% 处理更新文件夹  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if currentstate ~= 0  %在有持仓的情况下，更新文件夹中应保存交易当日的单子
+    display(['当前有持仓，上次交易日期：' num2str(lasttrddate)]);
+    
     updtfiles=ls(dirupdate);
     [num,~]=size(updtfiles);
     if num>3  % 检查文件是否唯一
@@ -73,12 +76,15 @@ if currentstate ~= 0  %在有持仓的情况下，更新文件夹中应保存交易当日的单子
         logupdt_erroutpt(logid,msg);
     end
     updttrdlist=updtfiles(end,:);
-    if strcmp(strrep(updttrdlist,' ',''),'..')   % 检查文件夹是否为空
+    if strcmp(strrep(updttrdlist,' ',''),'..')   % 检查文件夹是否为空，若为空则报错
         msg='更新文件夹为空！！！';
         logupdt_erroutpt(logid,msg);  
     end
-    listdate=updttrdlist(end-11:end-4);
-    listname=updttrdlist(1:end-12);
+    % 有文件存在，可能是csv 或者 xlsx, 需显识别文件类型
+    splited=strsplit(updttrdlist,'.');  % 识别文件类型    
+    listfull=splited{1};
+    listdate=listfull(end-7:end);
+    listname=listfull(1:end-8);
     % 检查当前更新文件夹中的文件时间，如果与首次复制时不同则文件名应为 m_ + strategy
     % 此时已通过上述检验，确定文件夹中文件存在且唯一
     load('lastupdt');
@@ -105,7 +111,9 @@ if currentstate ~= 0  %在有持仓的情况下，更新文件夹中应保存交易当日的单子
     fprintf(logid,'%s\n\r',msg);
     fclose(logid);
     display(msg);
-else  % 在无持仓的情况下，更新文件夹中应为当日最新的单子
+else  % 在无持仓的情况下，更新文件夹中应为当日最新的单子，需从日度文件夹中复制
+    display(['当前无持仓，今日交易日期为 ',datestr(today(),'yyyymmdd')]);
+    
     dayfiles=ls(dirdaily);
     [num,~]=size(dayfiles);
     if num>3  % 检查文件是否唯一
@@ -113,12 +121,15 @@ else  % 在无持仓的情况下，更新文件夹中应为当日最新的单子
         logupdt_erroutpt(logid,msg);  
     end
     daytrdlist=dayfiles(end,:);
-    if strcmp(strrep(daytrdlist,' ',''),'..')  % 检查文件夹是否为空
+    if strcmp(strrep(daytrdlist,' ',''),'..')  % 检查日度文件夹是否为空
         msg='日度文件夹为空！！！';
         logupdt_erroutpt(logid,msg);
     end
-    listdate=daytrdlist(end-11:end-4);
-    listname=daytrdlist(1:end-12);
+
+    splited=strsplit(daytrdlist,'.');
+    listfull=splited{1};
+    listdate=listfull(end-7:end);
+    listname=listfull(1:end-8);
     if ~strcmp(strategy,listname) % 复制前，检测是否存在单子放错对应策略
         msg=['日度文件夹中，单子策略错误应为 ' ,strategy,' 当前为 ',listname,' ！！！'];
         logupdt_erroutpt(logid,msg);
@@ -127,8 +138,8 @@ else  % 在无持仓的情况下，更新文件夹中应为当日最新的单子
         msg=['此次提交单子日期： ',listdate,',与当前日期不同，请检查！！！'];
         logupdt_erroutpt(logid,msg);
     end
-    % 复制开始前，先清空更新文件夹,删除所有csv文件
-    [rmstatus,rmmsg]=system(['del ',dirupdate,'\*.csv']);
+    % 复制开始前，先清空更新文件夹,删除所有文件
+    [rmstatus,rmmsg]=system(['del ',dirupdate,'\',strategy,'*.*']);
     if rmstatus~=0
         msg=['更新文件夹清空失败，错误原因： ' rmmsg];
         logupdt_erroutpt(logid,msg);
