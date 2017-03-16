@@ -1,4 +1,4 @@
-function[]=listcheck_update_v2(statusdir,dirdaily,dirupdate,strategy)
+function[]=listcheck_update_v2(statusdir,logdir,dirdaily,dirupdate,strategy)
 %
 % dirdaily 为存储每日更新单子
 % dirupdate 为存储实际交易单子
@@ -11,7 +11,7 @@ function[]=listcheck_update_v2(statusdir,dirdaily,dirupdate,strategy)
 %   有持仓情况：检查更新文件夹
 %       更新文件夹中文件是否唯一
 %       更新文件夹是否为空
-%       检查单子日期时间，判断是否为改过的单子 ，若改过则策略名称应包含 m_   
+%       检查单子日期时间，日期应为当前交易日，策略名称应包含 m_   
 %       更新文件夹中单子策略是否与当前前策略相同
 %       更新文件夹中单子日期是否为上次交易日期，该日期取自cwstate
 %   无持仓情况：检查日度文件夹
@@ -26,7 +26,7 @@ function[]=listcheck_update_v2(statusdir,dirdaily,dirupdate,strategy)
 %
 % 结果输出至日志 log.txt
 
-logid=fopen('D:\挂单检查\log.txt','a');
+logid=fopen(logdir,'a');
 msg=['Update Date : ',datestr(now()),' Strategy Name : ',strategy];
 fprintf(logid,'%s\n\r',msg);
 fprintf(logid,'\n\r');
@@ -62,6 +62,7 @@ else
 end
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%% 检查当前状态 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 currentstate=cwstate(end,1);
 
 if currentstate ~= 0  %在有持仓的情况下，更新文件夹中应保存交易当日的单子
