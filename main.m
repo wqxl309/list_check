@@ -9,6 +9,6 @@ statusdir='cwstate.txt';
 logdir='D:\Works\挂单检查\log.txt';
 dirdaily='D:\Works\挂单检查\日度文件夹';
 dirupdate='D:\Works\挂单检查\更新文件夹';
-strategy='BQ1ICLong';
-listcheck_update(statusdir,logdir,dirdaily,dirupdate,strategy);
+strategy='BQ2ICLong';
+listcheck_update_v2(statusdir,logdir,dirdaily,dirupdate,strategy);
 %exit;  
