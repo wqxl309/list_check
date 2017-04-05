@@ -31,9 +31,10 @@ msg=['Update Date : ',datestr(now()),' Strategy Name : ',strategy];
 fprintf(logid,'%s\n\r',msg);
 fprintf(logid,'\n\r');
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%% 检查当前仓位状态 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 cwstate=importdata(statusdir);
+currentstate=cwstate(end,1);
 %出场后全为0，包括日期
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%  复制单子至日度文件夹 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 复制开始前，先清空日度文件夹,删除所有 CSV 文件
@@ -51,8 +52,20 @@ end
 todaydt=datestr(today(),'yyyymmdd');
 [cpstatus,cpmsg]=system(['copy \\ACERPC\tradelist\',strategy ,todaydt, '.csv ',dirdaily]);
 if cpstatus ~=0
-    msg=['复制失败，错误原因：' cpmsg];
-    logupdt_erroutpt(logid,msg);
+    if strcmp(cpmsg(1:end-2),'系统找不到指定的文件')
+        if currentstate ~= 0
+            msg='今日没有日度单子，日度文件夹将为空，继续检查更新文件夹单子！';
+            fprintf(logid,'%s\n\r',msg);
+            fprintf(logid,'\n\r');
+            display(msg);
+        else
+            msg='今日没有日度单子，无法继续！';
+            logupdt_erroutpt(logid,msg);
+        end        
+    else   
+        msg=['复制失败，错误原因：' cpmsg];
+        logupdt_erroutpt(logid,msg);
+    end
 else
     msg=['复制成功，当前日度文件夹中单子日期为 ', todaydt];
     fprintf(logid,'%s\n\r',msg);
@@ -61,9 +74,7 @@ else
     display(msg);
 end
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%% 检查当前状态 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-currentstate=cwstate(end,1);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if currentstate ~= 0  %在有持仓的情况下
     %%%%%%%%%% 复制制作的当日卖单，日期应为当前交易日，策略名称前应有m_  %%%%%%%%
