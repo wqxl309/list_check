@@ -49,6 +49,7 @@ else
     display(msg);
 end
 % 正常，开始复制文件
+
 todaydt=datestr(today(),'yyyymmdd');
 [cpstatus,cpmsg]=system(['copy \\ACERPC\tradelist\',strategy ,todaydt, '.csv ',dirdaily]);
 if cpstatus ~=0
