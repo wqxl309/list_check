@@ -75,9 +75,14 @@ else   % 在部分持仓的情况下
     errsell=copy_trdlist(logid,sellstdir,dirupdate,updtname,true,sellpfx,strategy,todaydt,sellftp,1,false);
     errbuy=copy_trdlist(logid,buylstdir,dirupdate,updtname,false,buypfx,strategy,todaydt,buyftp,2,false);
     if errbuy==0 && errsell==0
-        display('买卖单复制成功！');
+        display('买卖单 复制 成功！');
+    elseif errbuy~=0 && errsell~=0
+        display('买卖单 复制 失败！');
+    elseif errbuy==0 && errsell~=0
+        display('买单复制成功 卖单复制失败！');
+    else
+        display('买单复制失败 卖单复制成功！');
     end
-    
 end
 fclose(logid);
 

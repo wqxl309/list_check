@@ -29,6 +29,7 @@ function[err]=copy_trdlist(logid,fromdir,todir,todirname,cleandir,fileprefix,str
                 return
             else
                 msg=['单子 ', filename, ' 不存在，请检查！'];
+                [~,~]=system(['del ',todir,'\*',filetype]);   % 任何一个单子复制失败都将清除文件夹
                 logupdt_erroutpt(logid,msg);
                 display(msg);
             end
